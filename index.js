@@ -51,6 +51,42 @@ async function run() {
       res.send(result);
     });
 
+    // -----------------------
+    // GET top-rated movies
+    // -----------------------
+    app.get("/movies/top-rated", async (req, res) => {
+      const limit = parseInt(req.query.limit) || 5;
+      const movies = await movieCollections
+        .find()
+        .sort({ rating: -1 })
+        .limit(limit)
+        .toArray();
+      res.send(movies);
+    });
+
+    // -----------------------
+    // GET recently added movies
+    // -----------------------
+    app.get("/movies/recent", async (req, res) => {
+      const limit = parseInt(req.query.limit) || 6;
+      const movies = await movieCollections
+        .find()
+        .sort({ _id: -1 })
+        .limit(limit)
+        .toArray();
+      res.json(movies);
+    });
+
+    // -----------------------
+    // GET statistics
+    // -----------------------
+    // app.get("/stats", async (req, res) => {
+    //   const totalMovies = await movieCollections.countDocuments();
+    //   res.send(totalMovies);
+    //   const totalUsers = await usersCollection.countDocuments();
+    //   res.json({ totalMovies, totalUsers });
+    // });
+
     // add a specific movie details
     app.get("/movies/:id", async (req, res) => {
       const id = req.params.id;
