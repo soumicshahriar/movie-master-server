@@ -33,7 +33,13 @@ async function run() {
     const movieCollections = db.collection("all-movies");
 
     // get all movies
-    app.get("/all-movies", async (req, res) => {
+    app.get("/movies", async (req, res) => {
+      const result = await movieCollections.find().toArray();
+      res.send(result);
+    });
+
+    // get all movies
+    app.get("/movies/my-collection", async (req, res) => {
       const email = req.query.email;
       let query = {};
       if (email) {
@@ -46,7 +52,7 @@ async function run() {
     });
 
     // add a specific movie details
-    app.get("/all-movies/:id", async (req, res) => {
+    app.get("/movies/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const cursor = await movieCollections.findOne(query);
@@ -54,7 +60,7 @@ async function run() {
     });
 
     // Add a new movie
-    app.post("/all-movies", async (req, res) => {
+    app.post("/movies/add", async (req, res) => {
       const newMovie = req.body;
       try {
         const result = await movieCollections.insertOne(newMovie);
@@ -69,7 +75,7 @@ async function run() {
     });
 
     // update movie
-    app.patch("/all-movies/:id", async (req, res) => {
+    app.patch("/movies/update/:id", async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -79,7 +85,7 @@ async function run() {
     });
 
     // delete a movie
-    app.delete("/all-movies/:id", async (req, res) => {
+    app.delete("/movies/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await movieCollections.deleteOne(query);
