@@ -45,6 +45,36 @@ async function run() {
     // Post all Users
     // -----------------------
 
+    app.post("/users", async (req, res) => {
+      try {
+        const newUser = req.body;
+
+        // Check if user already exists
+        const existingUser = await userCollections.findOne({
+          email: newUser.email,
+        });
+
+        if (existingUser) {
+          // User exists, return a message or the existing user
+          return res.status(200).send({
+            message: "User already exists",
+            user: existingUser,
+          });
+        }
+
+        // User does not exist, insert into DB
+        const result = await userCollections.insertOne(newUser);
+
+        res.status(201).send({
+          message: "User created successfully",
+          user: result,
+        });
+      } catch (error) {
+        console.error("Error adding user:", error);
+        res.status(500).send({ message: "Failed to add user" });
+      }
+    });
+
     // -----------------------
     // GET all Movies
     // -----------------------
