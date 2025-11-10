@@ -31,14 +31,31 @@ async function run() {
 
     const db = client.db("movie-master");
     const movieCollections = db.collection("all-movies");
+    const userCollections = db.collection("users");
 
-    // get all movies
+    // -----------------------
+    // GET all Users
+    // -----------------------
+    app.get("/users", async (req, res) => {
+      const result = await userCollections.find().toArray();
+      res.send(result);
+    });
+
+    // -----------------------
+    // Post all Users
+    // -----------------------
+
+    // -----------------------
+    // GET all Movies
+    // -----------------------
     app.get("/movies", async (req, res) => {
       const result = await movieCollections.find().toArray();
       res.send(result);
     });
 
-    // get all movies
+    // -----------------------
+    // GET all Movie Collection for login user
+    // -----------------------
     app.get("/movies/my-collection", async (req, res) => {
       const email = req.query.email;
       let query = {};
@@ -80,12 +97,13 @@ async function run() {
     // -----------------------
     // GET statistics
     // -----------------------
-    // app.get("/stats", async (req, res) => {
-    //   const totalMovies = await movieCollections.countDocuments();
-    //   res.send(totalMovies);
-    //   const totalUsers = await usersCollection.countDocuments();
-    //   res.json({ totalMovies, totalUsers });
-    // });
+    app.get("/stats", async (req, res) => {
+      const totalMovies = await movieCollections.countDocuments();
+      res.send(totalMovies);
+      // const totalUsers = await usersCollection.countDocuments();
+      // res.send(totalUsers);
+      // res.json({ totalMovies, totalUsers });
+    });
 
     // add a specific movie details
     app.get("/movies/:id", async (req, res) => {
