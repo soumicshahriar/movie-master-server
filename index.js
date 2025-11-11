@@ -224,7 +224,7 @@ async function run() {
     // -----------------------
     // Post to whichList
     // -----------------------
-    app.get("/users/watch-list", async (req, res) => {
+    app.post("/users/watch-list", async (req, res) => {
       const { userEmail, movieId } = req.body;
       const exists = await watchListCollections.findOne({ userEmail, movieId });
       if (exists)
@@ -235,6 +235,17 @@ async function run() {
         movieId,
       });
       res.send(result);
+    });
+
+    // -----------------------
+    // Get all watch-list
+    // -----------------------
+    app.get("/users/watch-list/:email", async (req, res) => {
+      const email = req.params.email;
+      const list = await watchListCollections
+        .find({ userEmail: email })
+        .toArray();
+      res.send(list);
     });
 
     // Send a ping to confirm a successful connection
