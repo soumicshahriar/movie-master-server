@@ -27,11 +27,12 @@ app.get("/", (req, res) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("movie-master");
     const movieCollections = db.collection("all-movies");
     const userCollections = db.collection("users");
+    const watchListCollections = db.collection("watch-list");
 
     // -----------------------
     // GET all Users
@@ -39,6 +40,15 @@ async function run() {
     app.get("/users", async (req, res) => {
       const result = await userCollections.find().toArray();
       res.send(result);
+    });
+
+    // -----------------------
+    // GET Users By Email
+    // -----------------------
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollections.findOne({ email });
+      res.send(user);
     });
 
     // -----------------------
@@ -78,9 +88,37 @@ async function run() {
     // -----------------------
     // GET all Movies
     // -----------------------
+    // app.get("/movies", async (req, res) => {
+    //   const result = await movieCollections.find().toArray();
+    //   res.send(result);
+    // });
+
+    // GET all Movies with optional filters
     app.get("/movies", async (req, res) => {
-      const result = await movieCollections.find().toArray();
-      res.send(result);
+      try {
+        const { genres, minRating, maxRating } = req.query;
+        let filter = {};
+
+        // Filter by multiple genres
+        if (genres) {
+          // Convert comma-separated string to array
+          const genresArray = genres.split(",");
+          filter.genre = { $in: genresArray };
+        }
+
+        // Filter by rating range
+        if (minRating || maxRating) {
+          filter.rating = {};
+          if (minRating) filter.rating.$gte = Number(minRating);
+          if (maxRating) filter.rating.$lte = Number(maxRating);
+        }
+
+        const movies = await movieCollections.find(filter).toArray();
+        res.send(movies);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Failed to fetch movies", error });
+      }
     });
 
     // -----------------------
@@ -129,13 +167,14 @@ async function run() {
     // -----------------------
     app.get("/stats", async (req, res) => {
       const totalMovies = await movieCollections.countDocuments();
-      res.send(totalMovies);
-      // const totalUsers = await usersCollection.countDocuments();
-      // res.send(totalUsers);
-      // res.json({ totalMovies, totalUsers });
+      const totalUsers = await userCollections.countDocuments();
+
+      res.send({ totalMovies, totalUsers });
     });
 
-    // add a specific movie details
+    // -----------------------
+    // Add A Specific Movie Details
+    // -----------------------
     app.get("/movies/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -143,7 +182,9 @@ async function run() {
       res.send(cursor);
     });
 
-    // Add a new movie
+    // -----------------------
+    // Add A New Movie
+    // -----------------------
     app.post("/movies/add", async (req, res) => {
       const newMovie = req.body;
       try {
@@ -158,7 +199,9 @@ async function run() {
       }
     });
 
-    // update movie
+    // -----------------------
+    // Update Movie
+    // -----------------------
     app.patch("/movies/update/:id", async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
@@ -168,7 +211,9 @@ async function run() {
       res.send(result);
     });
 
-    // delete a movie
+    // -----------------------
+    // Delete Movie
+    // -----------------------
     app.delete("/movies/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -176,8 +221,24 @@ async function run() {
       res.send(result);
     });
 
+    // -----------------------
+    // Post to whichList
+    // -----------------------
+    app.get("/users/watch-list", async (req, res) => {
+      const { userEmail, movieId } = req.body;
+      const exists = await watchListCollections.findOne({ userEmail, movieId });
+      if (exists)
+        return res.status(400).send({ message: "Already in watchList" });
+
+      const result = await watchListCollections.insertOne({
+        userEmail,
+        movieId,
+      });
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
