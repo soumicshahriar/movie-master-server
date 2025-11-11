@@ -248,6 +248,16 @@ async function run() {
       res.send(list);
     });
 
+    // -----------------------
+    // Remove A watch-list using movieId or userEmail
+    // -----------------------
+    app.delete("/users/watch-list/:movieId/:email", async (req, res) => {
+      const { movieId, email } = req.params;
+      const query = { movieId, userEmail: email };
+      const result = await watchListCollections.deleteOne(query);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
