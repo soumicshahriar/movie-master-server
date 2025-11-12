@@ -26,9 +26,6 @@ app.get("/", (req, res) => {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
-
     const db = client.db("movie-master");
     const movieCollections = db.collection("all-movies");
     const userCollections = db.collection("users");
@@ -65,7 +62,6 @@ async function run() {
         });
 
         if (existingUser) {
-          // User exists, return a message or the existing user
           return res.status(200).send({
             message: "User already exists",
             user: existingUser,
@@ -86,14 +82,8 @@ async function run() {
     });
 
     // -----------------------
-    // GET all Movies
+    // GET all Movies with optional filter
     // -----------------------
-    // app.get("/movies", async (req, res) => {
-    //   const result = await movieCollections.find().toArray();
-    //   res.send(result);
-    // });
-
-    // GET all Movies with optional filters
     app.get("/movies", async (req, res) => {
       try {
         const { genres, minRating, maxRating } = req.query;
